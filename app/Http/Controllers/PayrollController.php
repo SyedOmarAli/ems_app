@@ -39,7 +39,7 @@ class PayrollController extends Controller
             }
 
             $totalMinutes = $this->calculateTotalMinutes($attendances);
-            $hourlyRate = $employee->hourly_rate;
+            $hourlyRate = $employee->hourly_rate; // hour
             $totalSalary = round($totalMinutes * ($hourlyRate / 60), 2);
 
             $payroll = Payroll::updateOrCreate(
