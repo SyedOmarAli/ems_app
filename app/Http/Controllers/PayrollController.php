@@ -29,6 +29,9 @@ class PayrollController extends Controller
         $employees = Employee::all();
         $payrolls = [];
 
+        // Get list of working days in the month (excluding weekends)
+        $workingDays = $this->getWorkingDaysInMonth($startDate, $endDate);
+
         foreach ($employees as $employee) {
             $attendances = Attendance::where('employee_id', $employee->id)
                 ->whereBetween('date', [$startDate, $endDate])
@@ -38,9 +41,16 @@ class PayrollController extends Controller
                 continue; 
             }
 
+            // Count number of distinct days present
+            $presentDays = $attendances->pluck('date')->unique()->count();
+
+            // Calculate dynamic hourly rate
+            $monthlySalary = $employee->salary ?? 0;
+            $dailySalary = $workingDays > 0 ? $monthlySalary / $workingDays : 0;
+            $hourlyRate = $dailySalary / 8; // assuming 8 hours = 1 full workday
+
             $totalMinutes = $this->calculateTotalMinutes($attendances);
-            $hourlyRate = $employee->hourly_rate; // hour
-            $totalSalary = round($totalMinutes * ($hourlyRate / 60), 2);
+            $totalSalary = round($totalMinutes * ($hourlyRate / 60), 2); // salary = worked_minutes × rate_per_minute
 
             $payroll = Payroll::updateOrCreate(
                 [
@@ -49,7 +59,7 @@ class PayrollController extends Controller
                 ],
                 [
                     'total_minutes' => $totalMinutes,
-                    'hourly_rate' => $hourlyRate,
+                    'hourly_rate' => round($hourlyRate, 2),
                     'total_salary' => $totalSalary,
                 ]
             );
@@ -71,8 +81,8 @@ class PayrollController extends Controller
         foreach ($attendances as $attendance) {
             if ($attendance->time_in && $attendance->time_out) {
                 try {
-                    $in = Carbon::parse($attendance->time_in);
-                    $out = Carbon::parse($attendance->time_out);
+                    $in = Carbon::parse($attendance->date . ' ' . $attendance->time_in);
+                    $out = Carbon::parse($attendance->date . ' ' . $attendance->time_out);
 
                     if ($out->greaterThan($in)) {
                         $totalMinutes += $in->diffInMinutes($out);
@@ -84,5 +94,17 @@ class PayrollController extends Controller
         }
 
         return $totalMinutes;
+    }
+
+    private function getWorkingDaysInMonth($startDate, $endDate): int
+    {
+        $days = 0;
+        while ($startDate->lte($endDate)) {
+            if (!$startDate->isWeekend()) {
+                $days++;
+            }
+            $startDate->addDay();
+        }
+        return $days;
     }
 }
