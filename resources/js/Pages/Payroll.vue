@@ -31,7 +31,7 @@
         </thead>
         <tbody>
           <tr v-for="pay in payrolls" :key="pay.id">
-            <td class="border p-2">{{ pay.employee_id }}</td>
+            <td class="border p-2">{{ pay.employee?.name || pay.employee_id }}</td>
             <td class="border p-2">{{ formatMonth(pay.month) }}</td>
             <td class="border p-2">{{ pay.total_minutes }}</td>
             <td class="border p-2">{{ pay.hourly_rate }}</td>

@@ -11,100 +11,93 @@ use Inertia\Inertia;
 
 class PayrollController extends Controller
 {
+    // Show payroll list
     public function index()
     {
-        $payrolls = Payroll::latest()->with('employee')->get(); 
+        $payrolls = Payroll::with('employee')->latest()->get();
+
         return Inertia::render('Payroll', [
             'payrolls' => $payrolls,
         ]);
     }
 
+    // Generate payroll for a selected month
     public function generate(Request $request)
     {
-        $month = $request->input('month', now()->format('Y-m'));
+        $request->validate([
+            'month' => 'required|date_format:Y-m',
+        ]);
 
-        $startDate = Carbon::parse($month . '-01')->startOfMonth();
-        $endDate = Carbon::parse($month . '-01')->endOfMonth();
+        $monthDate = Carbon::parse($request->month . '-01');
+        $startDate = $monthDate->copy()->startOfMonth();
+        $endDate = $monthDate->copy()->endOfMonth();
 
         $employees = Employee::all();
-        $payrolls = [];
-
-        // Get list of working days in the month (excluding weekends)
-        $workingDays = $this->getWorkingDaysInMonth($startDate, $endDate);
 
         foreach ($employees as $employee) {
+            // Get attendances of employee for the selected month
             $attendances = Attendance::where('employee_id', $employee->id)
                 ->whereBetween('date', [$startDate, $endDate])
                 ->get();
 
-            if ($attendances->isEmpty()) {
-                continue; 
+            // Total working minutes
+            $totalMinutes = 0;
+
+            foreach ($attendances as $attendance) {
+                if ($attendance->time_in && $attendance->time_out) {
+                    try {
+                        $in = Carbon::createFromFormat('H:i:s', $attendance->time_in);
+                        $out = Carbon::createFromFormat('H:i:s', $attendance->time_out);
+                        if ($out->greaterThan($in)) {
+                            $totalMinutes += $in->diffInMinutes($out);
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error("Error parsing time for employee ID {$employee->id}: " . $e->getMessage());
+                    }
+                }
             }
 
-            // Count number of distinct days present
-            $presentDays = $attendances->pluck('date')->unique()->count();
+            // Calculate working days in month (excluding weekends)
+            $workingDays = 0;
+            $period = Carbon::parse($startDate)->daysUntil($endDate->copy()->addDay());
+            foreach ($period as $date) {
+                if (!$date->isWeekend()) {
+                    $workingDays++;
+                }
+            }
 
-            // Calculate dynamic hourly rate
-            $monthlySalary = $employee->salary ?? 0;
-            $dailySalary = $workingDays > 0 ? $monthlySalary / $workingDays : 0;
-            $hourlyRate = $dailySalary / 8; // assuming 8 hours = 1 full workday
+            // Calculate hourly rate dynamically
+            $hourlyRate = $employee->salary > 0
+                ? round($employee->salary / ($workingDays * 8), 2)  // assuming 8 hours/day
+                : 0;
 
-            $totalMinutes = $this->calculateTotalMinutes($attendances);
-            $totalSalary = round($totalMinutes * ($hourlyRate / 60), 2); // salary = worked_minutes × rate_per_minute
+            // Calculate total salary
+            $totalSalary = round(($totalMinutes / 60) * $hourlyRate, 2);
 
-            $payroll = Payroll::updateOrCreate(
+            // Save payroll
+            Payroll::updateOrCreate(
                 [
                     'employee_id' => $employee->id,
-                    'month' => $startDate->format('Y-m-01'),
+                    'month' => $monthDate->format('Y-m-01'),
                 ],
                 [
                     'total_minutes' => $totalMinutes,
-                    'hourly_rate' => round($hourlyRate, 2),
+                    'hourly_rate' => $hourlyRate,
                     'total_salary' => $totalSalary,
                 ]
             );
-
-            $payrolls[] = $payroll;
         }
+
+        // Return generated payrolls to Vue
+        $payrolls = Payroll::with('employee')
+            ->where('month', $monthDate->format('Y-m-01'))
+            ->latest()
+            ->get();
 
         return response()->json([
             'success' => true,
             'message' => 'Payroll generated successfully.',
             'data' => $payrolls,
         ]);
-    }
-
-    private function calculateTotalMinutes($attendances): int
-    {
-        $totalMinutes = 0;
-
-        foreach ($attendances as $attendance) {
-            if ($attendance->time_in && $attendance->time_out) {
-                try {
-                    $in = Carbon::parse($attendance->date . ' ' . $attendance->time_in);
-                    $out = Carbon::parse($attendance->date . ' ' . $attendance->time_out);
-
-                    if ($out->greaterThan($in)) {
-                        $totalMinutes += $in->diffInMinutes($out);
-                    }
-                } catch (\Exception $e) {
-                    \Log::error("Error parsing attendance time: " . $e->getMessage());
-                }
-            }
-        }
-
-        return $totalMinutes;
-    }
-
-    private function getWorkingDaysInMonth($startDate, $endDate): int
-    {
-        $days = 0;
-        while ($startDate->lte($endDate)) {
-            if (!$startDate->isWeekend()) {
-                $days++;
-            }
-            $startDate->addDay();
-        }
-        return $days;
     }
 }
