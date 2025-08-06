@@ -5,11 +5,20 @@
 
       <!-- Generate Payroll Form -->
       <div class="flex items-center space-x-4 mb-6">
+        <!-- Month Selector -->
         <input
           v-model="selectedMonth"
           type="month"
           class="border p-2 rounded"
+          @change="setDateRange"
         />
+
+        <!-- Start Date -->
+        <input v-model="startDate" type="date" class="border p-2 rounded" />
+
+        <!-- End Date -->
+        <input v-model="endDate" type="date" class="border p-2 rounded" />
+
         <button
           @click="generatePayroll"
           class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -22,9 +31,9 @@
       <table class="w-full border-collapse border border-gray-300">
         <thead>
           <tr class="bg-gray-200">
-            <th class="border p-2">Employee ID</th>
-            <th class="border p-2">Month</th>
+            <th class="border p-2">Employee Name</th>
             <th class="border p-2">Total Minutes</th>
+            <th class="border p-2">Overtime Minutes</th>
             <th class="border p-2">Hourly Rate</th>
             <th class="border p-2">Total Salary</th>
           </tr>
@@ -32,8 +41,8 @@
         <tbody>
           <tr v-for="pay in payrolls" :key="pay.id">
             <td class="border p-2">{{ pay.employee?.name || pay.employee_id }}</td>
-            <td class="border p-2">{{ formatMonth(pay.month) }}</td>
             <td class="border p-2">{{ pay.total_minutes }}</td>
+            <td class="border p-2">{{ pay.overtime }}</td>
             <td class="border p-2">{{ pay.hourly_rate }}</td>
             <td class="border p-2">{{ pay.total_salary }}</td>
           </tr>
@@ -48,7 +57,7 @@ import MainLayout from '@/Layouts/MainLayout.vue'
 import { ref } from 'vue'
 import axios from 'axios'
 
-// Props from Inertia (initial payroll list)
+// Props from Inertia
 const props = defineProps({
   payrolls: {
     type: Array,
@@ -56,22 +65,35 @@ const props = defineProps({
   },
 })
 
-// Reactive state
 const payrolls = ref([...props.payrolls])
-const selectedMonth = ref(new Date().toISOString().slice(0, 7)) // default to current month
+const selectedMonth = ref('')
+const startDate = ref('')
+const endDate = ref('')
 
-// Generate payroll and update table instantly
+// Auto-fill startDate and endDate when a month is selected
+function setDateRange() {
+  if (!selectedMonth.value) return
+  const [year, month] = selectedMonth.value.split('-')
+  const start = new Date(year, month - 1, 1)
+  const end = new Date(year, month, 0) // last day of month
+  startDate.value = start.toISOString().slice(0, 10)
+  endDate.value = end.toISOString().slice(0, 10)
+}
+
 async function generatePayroll() {
-  if (!selectedMonth.value) return alert('Please select a month!')
+  if (!startDate.value || !endDate.value) {
+    return alert('Please select start and end dates or a month!')
+  }
 
   try {
     const { data } = await axios.post(route('payroll.generate'), {
-      month: selectedMonth.value,
+      start_date: startDate.value,
+      end_date: endDate.value,
     })
 
     if (data.success) {
       alert(data.message)
-      payrolls.value = data.data // update table with new payroll data
+      payrolls.value = data.data
     } else {
       alert('Payroll generation failed.')
     }
@@ -79,10 +101,5 @@ async function generatePayroll() {
     console.error(error)
     alert('Error generating payroll.')
   }
-}
-
-// Format month to "YYYY-MM"
-function formatMonth(dateString) {
-  return dateString.slice(0, 7)
 }
 </script>

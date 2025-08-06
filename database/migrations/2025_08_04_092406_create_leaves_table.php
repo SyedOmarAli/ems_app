@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payrolls', function (Blueprint $table) {
+        Schema::create('leaves', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->integer('total_minutes')->default(0); // Total working minutes
-            $table->decimal('hourly_rate', 10, 2)->default(0);
-            $table->decimal('total_salary', 10, 2)->default(0);
+            $table->integer('total_leaves')->default(0);
+            $table->enum('Status', ['Accept','Reject']);
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payrolls');
+        Schema::dropIfExists('leaves');
     }
 };

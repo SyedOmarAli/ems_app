@@ -8,6 +8,7 @@ use App\Models\Payroll;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Inertia\Inertia;
+use Carbon\CarbonInterval;
 
 class PayrollController extends Controller
 {
@@ -25,12 +26,12 @@ class PayrollController extends Controller
     public function generate(Request $request)
     {
         $request->validate([
-            'month' => 'required|date_format:Y-m',
+            'start_date' => 'required|date_format:Y-m-d',
+            'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
         ]);
 
-        $monthDate = Carbon::parse($request->month . '-01');
-        $startDate = $monthDate->copy()->startOfMonth();
-        $endDate = $monthDate->copy()->endOfMonth();
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
 
         $employees = Employee::all();
 
@@ -42,6 +43,10 @@ class PayrollController extends Controller
 
             // Total working minutes
             $totalMinutes = 0;
+            $basicMinutes = 480;
+            // $interval = CarbonInterval::minutes($basicMinutes);
+            $overtime = 0;
+            $standardEndTime = Carbon::createFromTime(17, 0, 0);
 
             foreach ($attendances as $attendance) {
                 if ($attendance->time_in && $attendance->time_out) {
@@ -49,8 +54,13 @@ class PayrollController extends Controller
                         $in = Carbon::createFromFormat('H:i:s', $attendance->time_in);
                         $out = Carbon::createFromFormat('H:i:s', $attendance->time_out);
                         if ($out->greaterThan($in)) {
-                            $totalMinutes += $in->diffInMinutes($out);
+                            $workedMinutes = $in->diffInMinutes($out);
+                            $totalMinutes += $workedMinutes;
+                            if ($workedMinutes > $basicMinutes) {
+                                $overtime += ($workedMinutes - $basicMinutes);
+                            }
                         }
+
                     } catch (\Exception $e) {
                         \Log::error("Error parsing time for employee ID {$employee->id}: " . $e->getMessage());
                     }
@@ -68,7 +78,7 @@ class PayrollController extends Controller
 
             // Calculate hourly rate dynamically
             $hourlyRate = $employee->salary > 0
-                ? round($employee->salary / ($workingDays * 8), 2)  // assuming 8 hours/day
+                ? round($employee->salary / ($workingDays * 8), 2)
                 : 0;
 
             // Calculate total salary
@@ -78,19 +88,26 @@ class PayrollController extends Controller
             Payroll::updateOrCreate(
                 [
                     'employee_id' => $employee->id,
-                    'month' => $monthDate->format('Y-m-01'),
+                    'start_date' => $startDate->format('Y-m-d'),
+                    'end_date' => $endDate->format('Y-m-d'),
                 ],
                 [
                     'total_minutes' => $totalMinutes,
+                    'overtime' => $overtime,
                     'hourly_rate' => $hourlyRate,
                     'total_salary' => $totalSalary,
+                    'total_lates' => 0,
+                    'total_leaves' => 0,
+                    'total_absents' => 0,
+                    'total_deduction_amount' => 0,
                 ]
             );
         }
 
         // Return generated payrolls to Vue
         $payrolls = Payroll::with('employee')
-            ->where('month', $monthDate->format('Y-m-01'))
+            ->where('start_date', $startDate->format('Y-m-d'))
+            ->where('end_date', $endDate->format('Y-m-d'))
             ->latest()
             ->get();
 
