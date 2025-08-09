@@ -15,15 +15,22 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-    {
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'employee']);
+{
+    Role::firstOrCreate(['name' => 'admin']);
+    Role::firstOrCreate(['name' => 'employee']);
 
-        $admin = User::where('email', 'admin@gmail.com')->first();
-        $admin->assignRole('admin');
+    $admin = User::firstOrCreate(
+        ['email' => 'admin@gmail.com'],
+        ['name' => 'Admin', 'password' => bcrypt('password')]
+    );
+    $admin->assignRole('admin');
 
-        $employee = User::where('email', 'employee1@gmail.com')->first();
-        $employee->assignRole('employee');
-        
-    }
+    // Optional example employee
+    $employee = User::firstOrCreate(
+        ['email' => 'employee1@gmail.com'],
+        ['name' => 'Employee One', 'password' => bcrypt('password')]
+    );
+    $employee->assignRole('employee');
+}
+
 }
