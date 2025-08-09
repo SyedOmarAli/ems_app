@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('payrolls', function (Blueprint $table) {
-            $table->dropColumn('month');
+        Schema::table('employees', function (Blueprint $table) {
+            $table->enum('role',['admin','employee'])->default('employee');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('payrolls', function (Blueprint $table) {
-            $table->date('month');
+        Schema::table('employees', function (Blueprint $table) {
+            $table->dropColumn('role');
         });
     }
 };

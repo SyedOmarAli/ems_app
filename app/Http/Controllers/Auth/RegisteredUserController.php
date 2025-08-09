@@ -20,6 +20,11 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
+        // If a user already exists, block registration view
+        if (User::count() > 0) {
+            abort(403, 'Registration is closed.');
+        }
+
         return Inertia::render('Auth/Register');
     }
 
@@ -30,9 +35,14 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // If a user already exists, block registration process
+        if (User::count() > 0) {
+            abort(403, 'Registration is closed.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -42,10 +52,17 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        //  Assign admin role automatically
+        $user->assignRole('admin');
+
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        
+        return redirect(route('admin.dashboard', absolute: false));
+         
+
+
     }
 }

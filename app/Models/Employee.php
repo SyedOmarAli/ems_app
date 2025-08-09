@@ -14,5 +14,9 @@ class Employee extends Model
     public function leaves() {
         return $this->hasMany(Leaves::class);
     }
+
+    public function user() {
+        return $this->belongsTo(User::class);
+    } 
     // protected $fillable = ['name', 'email', 'department', 'phone', 'hire_date', 'salary'];
 }

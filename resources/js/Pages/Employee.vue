@@ -19,7 +19,8 @@
           <h3 class="text-lg font-semibold">{{ employee.name }}</h3>
           <p>Email: {{ employee.email }}</p>
           <p>Department: {{ employee.department }}</p>
-          <p>Hired On: <b>{{ employee.hire_date }}</b></p>    
+          <p>Hired On: <b>{{ employee.hire_date }}</b></p> 
+          <p>Current Role: <b>{{ employee.role }}</b></p>   
           <!-- Add more fields as needed -->
            <!-- Action Buttons -->
           <div class="flex space-x-2 mt-4">

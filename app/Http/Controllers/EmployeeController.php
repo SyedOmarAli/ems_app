@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
+use App\Models\Leaves;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Employee;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
 {
@@ -25,6 +30,7 @@ class EmployeeController extends Controller
             Log::error('Failed to fetch employees: ' . $e->getMessage());
             return back()->withErrors('Unable to load employees at the moment.');
         }
+
     }
 
     /**
@@ -43,13 +49,27 @@ class EmployeeController extends Controller
         $validatedData = $this->validateEmployee($request);
 
         try {
+            $user = User::create([
+                'name' => $validatedData['name'],
+                'email' => $validatedData['email'],
+                'password' => Hash::make('pass123'),
+            ]);
+
+            $user->assignRole('employee');
+
+            $validatedData['user_id'] = $user->id;
             Employee::create($validatedData);
+
+
+
             return redirect()->route('employee.index')
                 ->with('message', 'Employee registered successfully.');
         } catch (QueryException $e) {
             Log::error('Failed to create employee: ' . $e->getMessage());
             return back()->withErrors('Error creating employee. Please try again.');
         }
+
+
     }
 
     /**
@@ -71,6 +91,16 @@ class EmployeeController extends Controller
 
         try {
             $employee->update($validatedData);
+
+            $user = User::where('email', $employee->email)->first();
+            if ($employee->user) {
+                $employee->user->update([
+                    'name' => $validatedData['name'],
+                    'email' => $validatedData['email'],
+                ]);
+            }
+
+
             return redirect()->route('employee.index')
                 ->with('message', 'Employee updated successfully.');
         } catch (QueryException $e) {
@@ -95,6 +125,9 @@ class EmployeeController extends Controller
     public function destroy(Employee $employee)
     {
         try {
+            if($employee->user){
+                $employee->user->delete();
+            }
             $employee->delete();
             return redirect()->route('employee.index')
                 ->with('message', 'Employee deleted successfully.');
@@ -111,12 +144,12 @@ class EmployeeController extends Controller
     private function validateEmployee(Request $request, $employeeId = null)
     {
         return $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:employees,email,' . $employeeId,
-            'phone'      => 'required|string|max:20',
-            'salary'     => 'required|numeric|max:100',
-            'hire_date'  => 'required|date',
-            'code'       => $employeeId ? 'sometimes' : 'required|numeric|max:5000',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:employees,email,' . $employeeId . '|unique:users,email,' . $employeeId,
+            'phone' => 'required|string|max:20',
+            'salary' => 'required|numeric|max:100',
+            'hire_date' => 'required|date',
+            'code' => $employeeId ? 'sometimes' : 'required|numeric|max:5000',
             'department' => 'required|string|max:100',
         ]);
     }

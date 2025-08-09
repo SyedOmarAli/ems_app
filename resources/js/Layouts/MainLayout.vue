@@ -11,11 +11,12 @@
         <aside class="w-64 bg-gray-100 p-4">
           <nav>
             <ul>
-              <li><Link :href="route('dashboard')">Dashboard</Link></li>
+              <li><Link :href="route('admin.dashboard')">Dashboard</Link></li>
               <li><Link :href="route('employee.index')">Employees</Link></li>
               <li><Link :href="route('attendance')">Attendance</Link></li>
               <li><Link :href="route('attendance.show')">Show Attendance</Link></li>
               <li><Link :href="route('payroll')">Generate Payroll</Link></li>
+              <li><Link :href="route('admin.leaves')">Leaves</Link></li>
               <li>
               <Link :href="route('attendance.upload.form')">Upload Attendance</Link>
              </li>

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payrolls', function (Blueprint $table) {
-            $table->date('start_date')->after('employee_id');
+            $table->date('start_date')->after('employee_id')->nullable();
         });
     }
 
