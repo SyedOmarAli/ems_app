@@ -27,14 +27,16 @@ class EmployeeDashboardController extends Controller
             ->whereBetween('date', [$monthStart, $monthEnd])
             ->count();
 
-        return Inertia::render('EmployeeDashboard', [
-            'stats' => [
-                'total_days' => $totalDays,
-                'present' => $present,
-                'absent' => $absent,
-                'leaves' => $leaves,
-            ]
-        ]);
+         return Inertia::render('EmployeeDashboard', [
+             'stats' => [
+                 'total_days' => $totalDays,
+                 'present' => $present,
+                 'absent' => $absent,
+                 'leaves' => $leaves,
+             ]
+         ]);
+
+
     }
 
 }
