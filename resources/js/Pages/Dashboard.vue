@@ -6,7 +6,9 @@ import { Head } from '@inertiajs/vue3';
 
 const props = defineProps({
     employeeCount: Number,
-    attendanceCount: Number,
+    presentCount: Number,
+    absentCount: Number,
+    lateCount: Number,
     leaveCount: Number,
     payrollCount: Number,
 });
@@ -38,6 +40,13 @@ const props = defineProps({
                     </div>
                     <div class="text-gray-500 text-sm mb-1">Total Absent</div>
                     <div class="text-3xl font-bold text-green-700">{{ absentCount ?? 0 }}</div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+                    <div class="bg-green-100 text-green-700 rounded-full p-3 mb-3">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2" /></svg>
+                    </div>
+                    <div class="text-gray-500 text-sm mb-1">Total Late</div>
+                    <div class="text-3xl font-bold text-green-700">{{ lateCount ?? 0 }}</div>
                 </div>
                 <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
                     <div class="bg-green-100 text-green-700 rounded-full p-3 mb-3">

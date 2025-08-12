@@ -1,4 +1,5 @@
 <template>
+  <MainLayout>
   <div class="p-6">
     <h1 class="text-xl font-bold mb-4">Pending Leave Requests</h1>
     <table class="w-full border">
@@ -25,9 +26,11 @@
       </tbody>
     </table>
   </div>
+  </MainLayout>
 </template>
 
 <script setup>
+import MainLayout from '@/Layouts/MainLayout.vue';
 import { router } from '@inertiajs/vue3';
 
 const props = defineProps({

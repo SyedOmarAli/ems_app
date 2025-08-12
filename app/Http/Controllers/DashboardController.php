@@ -16,12 +16,14 @@ class DashboardController extends Controller
         $employeeCount = Employee::count();
         $presentCount = Attendance::whereDate('date', $today)->where('status', 'Present')->count();
         $absentCount = Attendance::whereDate('date', $today)->where('status', 'Absent')->count();
+        $lateCount = Attendance::whereDate('date', $today)->where('status', 'Late')->count();
         $leaveCount = \App\Models\Leaves::count();
 
         return Inertia::render('Dashboard', [
             'employeeCount' => $employeeCount,
             'presentCount' => $presentCount,
             'absentCount' => $absentCount,
+            'lateCount' => $lateCount,
             'leaveCount' => $leaveCount,
         ]);
     }
