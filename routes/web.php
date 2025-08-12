@@ -1,4 +1,6 @@
+
 <?php
+\Log::info('Route hit: ' . request()->path());
 
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
@@ -11,8 +13,8 @@ use App\Models\Employee;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
+// Welcome Page
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -23,71 +25,78 @@ Route::get('/', function () {
 });
 
 
+Route::get('/test-employee-dashboard', function() {
+    return 'Test route works!';
+});
 
-// Route::get('/dashboard', function () {
-//     return Inertia::render('Dashboard', [
-//         'employeeCount' => Employee::count(),
-//     ]);
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
-
-
-
+// Authenticated Routes
 Route::middleware('auth')->group(function () {
+
+    // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-   
-    // Admin Routes
-   
-    Route::middleware(['auth', 'role:admin'])->group(function() {
 
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-    Route::resource('employee', EmployeeController::class);
+    /**
+     * =====================
+     *  ADMIN ROUTES
+     * =====================
+     */
+    Route::middleware(['role:admin', 'verified'])->group(function () {
 
-    Route::get('/attendance', [AttendanceController::class, 'index'] )
-    ->middleware(['auth', 'verified'])->name('attendance');
+        // Dashboard
+        Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
-    Route::get('/attendance/sample-csv', [AttendanceController::class, 'downloadSample'])
-    ->middleware(['auth', 'verified'])
-    ->name('attendance.sample.csv');
+        // Employee Management
+        //Route::resource('employee', EmployeeController::class);
+        Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
+        Route::get('/employee/create', [EmployeeController::class, 'create'])->name('employee.create');
+        Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
+        Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
+        Route::put('/employee/{employee}', [EmployeeController::class, 'update'])->name('employee.update');
+        Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
 
-    Route::get('/attendance/upload-form', function () {
-    return Inertia::render('AttendanceUpload');
-})->middleware(['auth', 'verified'])->name('attendance.upload.form');
+        // Employee Details
+        //Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('employee.show');
+
+        // Attendance
+        Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance');
+        Route::get('/attendance/sample-csv', [AttendanceController::class, 'downloadSample'])->name('attendance.sample.csv');
+        Route::get('/attendance/upload-form', fn() => Inertia::render('AttendanceUpload'))->name('attendance.upload.form');
+        Route::post('/attendance/update-status', [AttendanceController::class, 'updateStatus'])->name('attendance.update_status');
+        Route::get('/attendance/show', [AttendanceController::class, 'show'])->name('attendance.show');
+        Route::post('/attendance/upload', [AttendanceController::class, 'upload'])->name('attendance.upload');
+
+        // Payroll
+        Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll');
+        Route::post('/payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
+
+        // Leave Management
+        Route::get('/admin/leaves', [LeaveController::class, 'index'])->name('admin.leaves');
+        Route::post('/admin/leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('admin.leaves.approve');
+        Route::post('/admin/leaves/{leave}/reject', [LeaveController::class, 'reject'])->name('admin.leaves.reject');
+    });
 
 
-    Route::post('/attendance/update-status', [AttendanceController::class, 'updateStatus'] )
-    ->middleware(['auth', 'verified'])->name('attendance.update_status');
+    /**
+     * =====================
+     *  EMPLOYEE ROUTES
+     * =====================
+     */
+    Route::middleware(['role:employee', 'verified'])->group(function () {
+        Route::get('/employee/dashboard', [EmployeeDashboardController::class, 'index'])
+            ->name('employee.dashboard');
+        Route::get('/employee/leaves', [LeaveController::class, 'myLeaves'])
+            ->name('employee.leaves');
+        Route::post('/employee/leaves/apply', [LeaveController::class, 'store'])
+            ->name('employee.leaves.apply');
 
-    Route::get('/attendance/show', [AttendanceController::class, 'show'] )
-    ->middleware(['auth', 'verified'])->name('attendance.show');
-
-    Route::post('/attendance/upload', [AttendanceController::class, 'upload'])
-    ->middleware(['auth', 'verified'])->name('attendance.upload');
-
-    Route::get('/payroll', [PayrollController::class, 'index'] )
-    ->middleware(['auth', 'verified'])->name('payroll');
-
-    Route::post('/payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
-
-    Route::get('/admin/leaves', [LeaveController::class, 'index'])->name('admin.leaves');
-    Route::post('/admin/leaves/{leave}', [LeaveController::class, 'approve'])->name('admin.leaves.approve');
-    Route::post('/admin/leaves/{leave}', [LeaveController::class, 'reject'])->name('admin.leaves.reject');  
+        
+    });
 
 });
 
-// Employee Routes
-
-Route::middleware(['auth', 'role:employee'])->group(function() {
-    Route::get('/employee/dashboard',[EmployeeDashboardController::class, 'index'])->name('employee.dashboard');
-    Route::get('/employee/leaves',[LeaveController::class, 'myLeaves'])->name('employee.leaves');
-    Route::post('/employee/leaves/apply',[LeaveController::class, 'store'])->name('employee.leaves.apply');
-});
-    
-});
 
 
 
-
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

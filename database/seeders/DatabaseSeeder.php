@@ -26,11 +26,13 @@ class DatabaseSeeder extends Seeder
     $admin->assignRole('admin');
 
     // Optional example employee
-    $employee = User::firstOrCreate(
-        ['email' => 'employee1@gmail.com'],
-        ['name' => 'Employee One', 'password' => bcrypt('password')]
-    );
-    $employee->assignRole('employee');
+//    $employee = User::firstOrCreate(
+  //      ['email' => 'employee1@gmail.com'],
+    //    ['name' => 'Employee One', 'password' => bcrypt('password')]
+    //);
+    //$employee->assignRole('employee');
+        
+        // Assign 'employee' role to a specific user
 }
 
 }

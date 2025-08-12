@@ -12,6 +12,7 @@ class EmployeeDashboardController extends Controller
 {
     public function index()
     {
+    \Log::info('EmployeeDashboardController@index called');
         $user = auth()->user();
         $monthStart = Carbon::now()->startOfMonth();
         $monthEnd = Carbon::now()->endOfMonth();
