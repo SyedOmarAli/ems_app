@@ -10,30 +10,19 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $today = Carbon::today();
-        $totalEmployees = Employee::count();
-        
-        $presentCount = Attendance::where('date', $today)
-        ->where('status', 'Present')->count();
-
-        $absentCount = Attendance::where('date', $today)
-        ->where('status', 'Absent')->count();
-        
-        $lateCount = Attendance::where('date', $today)
-        ->where('status', 'Late')->count();
-        
-        $leaveCount = Attendance::where('date', $today)
-        ->where('status', 'Approved')->count();
+        $employeeCount = Employee::count();
+        $presentCount = Attendance::whereDate('date', $today)->where('status', 'Present')->count();
+        $absentCount = Attendance::whereDate('date', $today)->where('status', 'Absent')->count();
+        $leaveCount = \App\Models\Leaves::count();
 
         return Inertia::render('Dashboard', [
-            'stats' => [
-                'total_employees' => $totalEmployees,
-                'present' => $presentCount,
-                'absent' => $absentCount,
-                'late' => $lateCount,
-                'leave' => $leaveCount,
-            ]
-            ]);
+            'employeeCount' => $employeeCount,
+            'presentCount' => $presentCount,
+            'absentCount' => $absentCount,
+            'leaveCount' => $leaveCount,
+        ]);
     }
 }

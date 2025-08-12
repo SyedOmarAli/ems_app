@@ -15,7 +15,13 @@ class LeaveController extends Controller
 
     public function myLeaves() {
         $leaves = Leaves::where('employee_id', auth()->user()->employee_id)->latest()->get();
-        return Inertia::render('EmployeeLeave', ['leaves' => $leaves]);
+        $employeeName = auth()->user()->name;
+        return Inertia::render('EmployeeLeave', [
+            'leaves' => $leaves,
+            'stats' => [
+                'employee_name' => $employeeName
+            ]
+        ]);
     }
 
     public function store(Request $request) {

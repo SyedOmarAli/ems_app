@@ -12,7 +12,7 @@ class EmployeeDashboardController extends Controller
 {
     public function index()
     {
-    \Log::info('EmployeeDashboardController@index called');
+        \Log::info('EmployeeDashboardController@index called');
         $user = auth()->user();
         $monthStart = Carbon::now()->startOfMonth();
         $monthEnd = Carbon::now()->endOfMonth();
@@ -27,15 +27,17 @@ class EmployeeDashboardController extends Controller
         $leaves = Leaves::where('employee_id', $user->employee->id)
             ->whereBetween('date', [$monthStart, $monthEnd])
             ->count();
+        $emp_name = $user->employee->name;
 
-         return Inertia::render('EmployeeDashboard', [
-             'stats' => [
-                 'total_days' => $totalDays,
-                 'present' => $present,
-                 'absent' => $absent,
-                 'leaves' => $leaves,
-             ]
-         ]);
+        return Inertia::render('EmployeeDashboard', [
+            'stats' => [
+                'total_days' => $totalDays,
+                'present' => $present,
+                'absent' => $absent,
+                'leaves' => $leaves,
+                'employee_name' => $emp_name,
+            ]
+        ]);
 
 
     }

@@ -88,6 +88,7 @@ class AttendanceController extends Controller
         $skipped = 0;
         $processedDates = []; // keep track of dates processed from CSV
 
+
         foreach ($csv as $record) {
             if (empty($record['employee_id']) || empty($record['time_in'])) {
                 $skipped++;
@@ -100,9 +101,22 @@ class AttendanceController extends Controller
                 continue;
             }
 
-            try {
-                $dateTime = Carbon::createFromFormat('d/m/Y H:i:s', trim($record['time_in']));
-            } catch (\Exception $e) {
+            // Normalize time_in: insert a space before AM/PM if missing
+            $timeInRaw = trim($record['time_in']);
+            $timeInNormalized = preg_replace('/(AM|PM)$/i', ' $1', $timeInRaw);
+
+            // Try both with and without AM/PM
+            $dateTime = null;
+            $formats = ['d/m/Y h:i:s A', 'd/m/Y H:i:s'];
+            foreach ($formats as $format) {
+                try {
+                    $dateTime = Carbon::createFromFormat($format, $timeInNormalized);
+                    break;
+                } catch (\Exception $e) {
+                    // Try next format
+                }
+            }
+            if (!$dateTime) {
                 $skipped++;
                 continue;
             }
