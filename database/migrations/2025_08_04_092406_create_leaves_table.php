@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
             $table->integer('total_leaves')->default(0);
-            $table->enum('Status', ['Accept','Reject']);
+            //$table->enum('Status', ['Accept','Reject']);
             $table->timestamps();
         });
     }

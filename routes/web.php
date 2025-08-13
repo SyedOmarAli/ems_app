@@ -1,4 +1,3 @@
-
 <?php
 \Log::info('Route hit: ' . request()->path());
 
@@ -25,7 +24,7 @@ Route::get('/', function () {
 });
 
 
-Route::get('/test-employee-dashboard', function() {
+Route::get('/test-employee-dashboard', function () {
     return 'Test route works!';
 });
 
@@ -91,7 +90,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/employee/leaves/apply', [LeaveController::class, 'store'])
             ->name('employee.leaves.apply');
 
-        
+
     });
 
 });

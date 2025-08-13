@@ -8,14 +8,17 @@ use Inertia\Inertia;
 
 class LeaveController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $leaves = Leaves::with('employee')->latest()->get();
-        return Inertia::render('AdminLeave',['leaves' => $leaves]);
+        return Inertia::render('AdminLeave', ['leaves' => $leaves]);
     }
 
-    public function myLeaves() {
-        $leaves = Leaves::where('employee_id', auth()->user()->employee_id)->latest()->get();
-        $employeeName = auth()->user()->name;
+    public function myLeaves()
+    {
+        $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
+        $leaves = $employee ? Leaves::where('employee_id', $employee->id)->latest()->get() : [];
+        $employeeName = $employee ? $employee->name : auth()->user()->name;
         return Inertia::render('EmployeeLeave', [
             'leaves' => $leaves,
             'stats' => [
@@ -24,32 +27,40 @@ class LeaveController extends Controller
         ]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $request->validate([
-            'date' => 'required|date',
-            'type' => 'required|string',
-            'description' => 'nullable|string',
-            'is_paid' => 'required|boolean',
+            'from_date' => 'required|date',
+            'to_date' => 'required|date|after_or_equal:from_date',
+            'leave_type' => 'required|string',
+            'reason' => 'nullable|string',
         ]);
 
+        $employee = \App\Models\Employee::where('user_id', auth()->id())->first();
+
+        if (!$employee) {
+            return back()->withErrors(['error' => 'Employee record not found for this user.']);
+        }
         Leaves::create([
-            'employee_id' => auth()->user()->employee_id,
-            'date' => $request->date,
-            'type' => $request->type,
-            'description' => $request->description,
-            'is_paid' => $request->is_paid,
+            'employee_id' => $employee->id,
+            'from_date' => $request->from_date,
+            'to_date' => $request->to_date,
+            'leave_type' => $request->leave_type,
+            'reason' => $request->reason,
             'status' => 'Pending',
         ]);
 
         return back()->with('message', 'Leave applied successfully.');
     }
 
-    public function approve(Leaves $leaves) {
+    public function approve(Leaves $leaves)
+    {
         $leaves->update(['status' => 'Approved']);
         return back()->with('message', 'Leave approved.');
     }
 
-    public function reject(Leaves $leaves) {
+    public function reject(Leaves $leaves)
+    {
         $leaves->update(['status' => 'Rejected']);
         return back()->with('message', 'Leave rejected.');
     }
