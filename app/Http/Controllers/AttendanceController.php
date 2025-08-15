@@ -20,7 +20,7 @@ class AttendanceController extends Controller
         $employees = Employee::all();
 
         return Inertia::render('Attendance', [
-            'attendance' => $attendance,
+            'attendances' => $attendance,
             'employees' => $employees,
             'date' => today()->toDateString(),
             'routes' => [
@@ -31,33 +31,57 @@ class AttendanceController extends Controller
 
     public function updateStatus(Request $request)
     {
-        // Accept both single record and multiple records
-        $records = $request->input('records', []);
+        $input = $request->input();
 
-        // If a single record is sent instead of an array
-        $records = [
-            [
-                'employee_id' => $request->employee_id,
-                'date' => $request->date,
-                'status' => $request->status,
-                'time_in' => $request->time_in,
-                'time_out' => $request->time_out,
-            ]
-        ];
-        // Loop through each record and update or create
+        // Accept either: payload.records = [ ... ] OR single-record fields directly
+        $records = $request->input('records', null);
+
+        if (is_null($records)) {
+            // maybe single record posted not wrapped in records array
+            $single = [
+                'employee_id' => $request->input('employee_id'),
+                'date' => $request->input('date'),
+                'status' => $request->input('status'),
+                'time_in' => $request->input('time_in'),
+                'time_out' => $request->input('time_out'),
+            ];
+            // if employee_id missing, abort
+            if (empty($single['employee_id']) || empty($single['date'])) {
+                return response()->json(['success' => false, 'message' => 'Invalid payload.'], 422);
+            }
+            $records = [$single];
+        }
+
         foreach ($records as $record) {
+            // Validate required keys per record
+            if (empty($record['employee_id']) || empty($record['date'])) {
+                continue; // skip invalid
+            }
+
+            // Normalize time strings: we expect HH:mm:ss or HH:mm (convert to HH:mm:00)
+            $timeIn = $record['time_in'] ?? null;
+            $timeOut = $record['time_out'] ?? null;
+
+            if (!empty($timeIn) && strlen($timeIn) === 5) {
+                $timeIn = $timeIn . ':00';
+            }
+            if (!empty($timeOut) && strlen($timeOut) === 5) {
+                $timeOut = $timeOut . ':00';
+            }
+
             Attendance::updateOrCreate(
                 ['employee_id' => $record['employee_id'], 'date' => $record['date']],
                 [
-                    'status' => $record['status'],
-                    'time_in' => !empty($record['time_in']) ? $record['time_in'] . (strlen($record['time_in']) === 5 ? ':00' : '') : null,
-                    'time_out' => !empty($record['time_out']) ? $record['time_out'] . (strlen($record['time_out']) === 5 ? ':00' : '') : null,
+                    'status' => $record['status'] ?? 'Absent',
+                    'time_in' => !empty($timeIn) ? $timeIn : null,
+                    'time_out' => !empty($timeOut) ? $timeOut : null,
                 ]
             );
         }
 
         return response()->json(['success' => true, 'message' => 'Attendance updated successfully.']);
     }
+
 
     public function show()
     {
@@ -141,7 +165,7 @@ class AttendanceController extends Controller
             if ($attendance) {
                 // Second scan → update time_out if it's later than current time_out
                 if (is_null($attendance->time_out) || $dateTime->greaterThan($attendance->time_out)) {
-                    $attendance->time_out = $dateTime;
+                    $attendance->time_out = $dateTime->format('H:i:s');
                     $attendance->save();
                 }
             } else {
@@ -152,7 +176,6 @@ class AttendanceController extends Controller
 
                 if ($dateTime->lessThan($noon)) {
                     $timeIn = $dateTime;
-
                     if ($dateTime->greaterThan($lateThreshold)) {
                         $status = 'Late';
                     } else {
@@ -166,8 +189,8 @@ class AttendanceController extends Controller
                 Attendance::create([
                     'employee_id' => $employeeId,
                     'date' => $date,
-                    'time_in' => $timeIn,
-                    'time_out' => $timeOut,
+                    'time_in' => $timeIn ? $timeIn->format('H:i:s') : null,
+                    'time_out' => $timeOut ? $timeOut->format('H:i:s') : null,
                     'status' => $status,
                 ]);
             }

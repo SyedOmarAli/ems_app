@@ -53,15 +53,21 @@ class LeaveController extends Controller
         return back()->with('message', 'Leave applied successfully.');
     }
 
-    public function approve(Leaves $leaves)
+    public function approve($leaveId)
     {
-        $leaves->update(['status' => 'Approved']);
+        $leave = Leaves::findOrFail($leaveId);
+        $leave->status = 'Approved';
+        $leave->save();
+
         return back()->with('message', 'Leave approved.');
     }
 
-    public function reject(Leaves $leaves)
+    public function reject($leaveId)
     {
-        $leaves->update(['status' => 'Rejected']);
+        $leave = Leaves::findOrFail($leaveId);
+        $leave->status = 'Rejected';
+        $leave->save();
+
         return back()->with('message', 'Leave rejected.');
     }
 }

@@ -35,6 +35,10 @@
             <th class="border p-2">Total Minutes</th>
             <th class="border p-2">Overtime Minutes</th>
             <th class="border p-2">Hourly Rate</th>
+            <th class="border p-2">Total Lates</th>
+            <th class="border p-2">Total Absents</th>
+            <th class="border p-2">Total Leaves</th>
+            <th class="border p-2">Total Deducted Amount</th>
             <th class="border p-2">Total Salary</th>
           </tr>
         </thead>
@@ -44,6 +48,10 @@
             <td class="border p-2">{{ pay.total_minutes }}</td>
             <td class="border p-2">{{ pay.overtime }}</td>
             <td class="border p-2">{{ pay.hourly_rate }}</td>
+            <td class="border p-2">{{ pay.total_lates }}</td>
+            <td class="border p-2">{{ pay.total_absents }}</td>
+            <td class="border p-2">{{ pay.total_leaves }}</td>
+            <td class="border p-2">{{ pay.total_deduction_amount }}</td>
             <td class="border p-2">{{ pay.total_salary }}</td>
           </tr>
         </tbody>

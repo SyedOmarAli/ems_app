@@ -10,7 +10,7 @@ return new class extends Migration {
     {
         // Step 1: Add as nullable
         Schema::table('payrolls', function (Blueprint $table) {
-            $table->date('month')->nullable()->after('end_date');
+            $table->date('month')->nullable()->after('end_date')->change();
         });
 
         // Step 2: Fill with month derived from start_date, fallback to '2025-01-01'

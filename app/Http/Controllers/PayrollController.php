@@ -30,44 +30,51 @@ class PayrollController extends Controller
             'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
         ]);
 
-        $startDate = Carbon::parse($request->start_date);
-        $endDate = Carbon::parse($request->end_date);
+        $startDate = Carbon::parse($request->start_date)->startOfDay();
+        $endDate = Carbon::parse($request->end_date)->endOfDay();
+
+        // store month as the FIRST day of that month (DATE column: Y-m-d)
+        $monthDate = $startDate->copy()->startOfMonth()->toDateString();
 
         $employees = Employee::all();
 
         foreach ($employees as $employee) {
-            // Get attendances of employee for the selected month
+            // Attendances for the selected range
             $attendances = Attendance::where('employee_id', $employee->id)
-                ->whereBetween('date', [$startDate, $endDate])
+                ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
                 ->get();
 
-            // Total working minutes
+            // Totals
             $totalMinutes = 0;
-            $basicMinutes = 480;
-            // $interval = CarbonInterval::minutes($basicMinutes);
+            $basicMinutes = 480; // 8 hours
             $overtime = 0;
-            $standardEndTime = Carbon::createFromTime(17, 0, 0);
+
+            // consider 09:15 as standard start (adjust to your rule)
+            $standardStartTime = Carbon::createFromTime(9, 15, 0);
 
             foreach ($attendances as $attendance) {
                 if ($attendance->time_in && $attendance->time_out) {
                     try {
-                        $in = Carbon::createFromFormat('H:i:s', $attendance->time_in);
-                        $out = Carbon::createFromFormat('H:i:s', $attendance->time_out);
+                        // parse flexibly; supports 'HH:mm' and 'HH:mm:ss'
+                        $in = Carbon::parse($attendance->time_in);
+                        $out = Carbon::parse($attendance->time_out);
+
+                        // only count if out > in
                         if ($out->greaterThan($in)) {
                             $workedMinutes = $in->diffInMinutes($out);
                             $totalMinutes += $workedMinutes;
+
                             if ($workedMinutes > $basicMinutes) {
                                 $overtime += ($workedMinutes - $basicMinutes);
                             }
                         }
-
-                    } catch (\Exception $e) {
-                        \Log::error("Error parsing time for employee ID {$employee->id}: " . $e->getMessage());
+                    } catch (\Throwable $e) {
+                        Log::error("Error parsing time for employee {$employee->id}: {$e->getMessage()}");
                     }
                 }
             }
 
-            // Calculate working days in month (excluding weekends)
+            // Working days excluding weekends
             $workingDays = 0;
             $period = Carbon::parse($startDate)->daysUntil($endDate->copy()->addDay());
             foreach ($period as $date) {
@@ -76,38 +83,81 @@ class PayrollController extends Controller
                 }
             }
 
-            // Calculate hourly rate dynamically
-            $hourlyRate = $employee->salary > 0
+            // Guard against zero working days
+            $hourlyRate = ($employee->salary > 0 && $workingDays > 0)
                 ? round($employee->salary / ($workingDays * 8), 2)
                 : 0;
 
-            // Calculate total salary
             $totalSalary = round(($totalMinutes / 60) * $hourlyRate, 2);
 
-            // Save payroll
+            // Leaves: group OR conditions properly + filter Approved first
+            $totalLeaves = $employee->leaves()
+                ->where('status', 'Approved')
+                ->where(function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('from_date', [$startDate->toDateString(), $endDate->toDateString()])
+                        ->orWhereBetween('to_date', [$startDate->toDateString(), $endDate->toDateString()]);
+                })
+                ->count();
+
+            $totalAbsents = max(0, $workingDays - $attendances->count() - $totalLeaves);
+
+            // "Late" = time_in after standard start
+            $totalLates = $attendances->filter(function ($attendance) use ($standardStartTime) {
+                if (!$attendance->time_in)
+                    return false;
+                try {
+                    return Carbon::parse($attendance->time_in)->greaterThan($standardStartTime);
+                } catch (\Throwable $e) {
+                    return false;
+                }
+            })->count();
+
+            $totalLeavesAmount = $employee->leaves()->where('status', 'Rejected')->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('from_date', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->orWhereBetween('to_date', [$startDate->toDateString(), $endDate->toDateString()]);
+            })
+                ->count() * $hourlyRate * 8;
+
+            // Deduction logic: if there are rejected leaves or unpaid leaves, calculate total deduction
+            // if ($employee->leaves()->where('status', 'Rejected') && $employee->leaves()->where('leave_type', 'Unpaid')) {
+            //     $totalDeductionAmount = ($totalAbsents * $hourlyRate * 8) + $totalLeavesAmount
+            //         + $totalLates * ($hourlyRate / 2); // assuming half-day deduction for late
+            // } elseif ($employee->leaves()->where('status', 'Rejected')) {
+            //     $totalDeductionAmount = ($totalAbsents * $hourlyRate * 8)  + $totalLeavesAmount
+            //         + $totalLates * ($hourlyRate / 2); // assuming half-day deduction for late
+//            } elseif($employee->leaves()->where('status', 'Rejected') && $employee->leaves()->where('leave_type', 'Unpaid')){
+    //            $totalDeductionAmount = 
+  //          }
+
+
+
+
+            // 🔑 Use (employee_id + month) as the identity for a payroll
             Payroll::updateOrCreate(
                 [
                     'employee_id' => $employee->id,
-                    'start_date' => $startDate->format('Y-m-d'),
-                    'end_date' => $endDate->format('Y-m-d'),
+                    'month' => $monthDate, // DATE: 'YYYY-MM-01'
                 ],
                 [
+                    // keep the period stored/updated for reference
+                    'start_date' => $startDate->toDateString(),
+                    'end_date' => $endDate->toDateString(),
+
                     'total_minutes' => $totalMinutes,
                     'overtime' => $overtime,
                     'hourly_rate' => $hourlyRate,
                     'total_salary' => $totalSalary,
-                    'total_lates' => 0,
-                    'total_leaves' => 0,
-                    'total_absents' => 0,
+                    'total_lates' => $totalLates,
+                    'total_leaves' => $totalLeaves,
+                    'total_absents' => $totalAbsents,
                     'total_deduction_amount' => 0,
                 ]
             );
         }
 
-        // Return generated payrolls to Vue
+        // Return only the month’s payrolls
         $payrolls = Payroll::with('employee')
-            ->where('start_date', $startDate->format('Y-m-d'))
-            ->where('end_date', $endDate->format('Y-m-d'))
+            ->where('month', $monthDate)
             ->latest()
             ->get();
 

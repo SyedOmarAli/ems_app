@@ -21,7 +21,7 @@ class EmployeeController extends Controller
     public function index()
     {
         try {
-            $employees = Employee::all();
+            $employees = Employee::paginate(5);
 
             return Inertia::render('Employee', [
                 'employees' => $employees,
