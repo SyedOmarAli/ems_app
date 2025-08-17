@@ -2,6 +2,9 @@
     <MainLayout>
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-2xl font-bold">Employees</h2>
+        <template>
+          <input type="text" v-model="search" placeholder="Search..."></input>
+        </template>
         <Link :href="route('employee.create')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
         + Create Employee
         </Link>
@@ -48,9 +51,19 @@
 
 <script setup>
 import { defineProps } from 'vue'
+import { ref, watch } from 'vue'
+//import { Inertia } from '@inertiajs/vue3'
+//import { debounce } from 'lodash'
 import { router, Link } from '@inertiajs/vue3'
 import MainLayout from '@/Layouts/MainLayout.vue'
 import Card from '@/Components/Card.vue'
+//import { Presence } from 'reka-ui'
+
+//const search = ref('');
+//watch (search, debounce((value) => {
+  //Inertia.get(route('employee.index'), { search : value }, {PreserveState: true, PreserveScroll: true});
+//}, 300));
+
 
 const props = defineProps({
   employees: {

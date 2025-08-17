@@ -33,6 +33,16 @@ class EmployeeController extends Controller
 
     }
 
+    // public function index(request $request) {
+    //     $query = Employee::query();
+        
+    //     if ($request->has('search')) {
+    //         $search = $request->input('search');
+    //         $query->where('name', 'like', '%' . $search . '%')
+    //             ->orWhere('email', 'like', '%' . $search . '%');
+    //     }   
+    // }
+
     /**
      * Show the form for creating a new employee.
      */
