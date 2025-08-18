@@ -47,16 +47,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
         // Employee Management
-        //Route::resource('employee', EmployeeController::class);
-        Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
-        Route::get('/employee/create', [EmployeeController::class, 'create'])->name('employee.create');
-        Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
-        Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
-        Route::put('/employee/{employee}', [EmployeeController::class, 'update'])->name('employee.update');
-        Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
+        Route::get('/admin/employee', [EmployeeController::class, 'index'])->name('admin.employee.index');
+        Route::get('/admin/employee/create', [EmployeeController::class, 'create'])->name('admin.employee.create');
+        Route::post('/admin/employee', [EmployeeController::class, 'store'])->name('admin.employee.store');
+        Route::get('/admin/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('admin.employee.edit');
+        Route::put('/admin/employee/{employee}', [EmployeeController::class, 'update'])->name('admin.employee.update');
+        Route::delete('/admin/employee/{employee}', [EmployeeController::class, 'destroy'])->name('admin.employee.destroy');
 
         // Employee Details
-        //Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('employee.show');
+        Route::get('admin/employee/{employee}', [EmployeeController::class, 'show'])->name('admin.employee.show');
 
         // Attendance
         Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance');

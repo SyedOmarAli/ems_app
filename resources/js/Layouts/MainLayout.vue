@@ -29,7 +29,7 @@
                 </Link>
               </li>
               <li>
-                <Link :href="route('employee.index')" class="flex items-center px-5 py-3 rounded-lg hover:bg-gray-800 transition">
+                <Link :href="route('admin.employee.index')" class="flex items-center px-5 py-3 rounded-lg hover:bg-gray-800 transition">
                   <svg class="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M16 3.13a4 4 0 010 7.75M8 3.13a4 4 0 000 7.75M12 17v-1m0 0a4 4 0 00-4-4H8a4 4 0 00-4 4v1m8-1a4 4 0 014-4h.01a4 4 0 014 4v1" /></svg>
                   <span>Employees</span>
                 </Link>
