@@ -164,7 +164,14 @@ function goToLink(link) {
 // convenience computed values for template
 const paginatorLinks = computed(() => {
   const v = attendancesProp.value
-  return (v && v.links) ? v.links : []
+  if(!v) return []
+
+  if(Array.isArray(v.links)) return v.links
+  
+  if(v.meta && Array.isArray(v.meta.links)) return v.meta.links
+
+  return []
+
 })
 
 const recordsCount = computed(() => attendanceArray(attendancesProp.value).length)
@@ -324,7 +331,7 @@ onMounted(() => {
       </table>
 
       <!-- Pagination -->
-      <div class="mt-4 flex justify-center" v-if="paginatorLinks.length">
+      <div class="mt-4 flex justify-center" v-if="paginatorLinks && paginatorLinks.length >= 1">
         <template v-for="link in paginatorLinks" :key="link.label">
           <button
             v-if="link.url"

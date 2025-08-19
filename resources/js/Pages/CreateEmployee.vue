@@ -109,6 +109,6 @@ const form = useForm({
 })
 
 function submit() {
-  form.post(route('employee.store'))
+  form.post(route('admin.employee.store'))
 }
 </script>
