@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/leaves', [LeaveController::class, 'index'])->name('admin.leaves');
         Route::post('/admin/leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('admin.leaves.approve');
         Route::post('/admin/leaves/{leave}/reject', [LeaveController::class, 'reject'])->name('admin.leaves.reject');
+        Route::post('/admin/leaves/{leave}/revert', [LeaveController::class, 'revert'])->name('admin.leaves.revert');
     });
 
 

@@ -14,9 +14,16 @@ return new class extends Migration {
         });
 
         // Step 2: Fill with month derived from start_date, fallback to '2025-01-01'
-        DB::table('payrolls')->update([
-            'month' => DB::raw('COALESCE(DATE_FORMAT(start_date, "%Y-%m-01"), "2025-01-01")')
-        ]);
+        $payrolls = DB::table('payrolls')->get();
+        foreach ($payrolls as $payroll) {
+            $month = '2025-01-01';
+            if ($payroll->start_date) {
+                try {
+                    $month = \Carbon\Carbon::parse($payroll->start_date)->startOfMonth()->toDateString();
+                } catch (\Exception $e) {}
+            }
+            DB::table('payrolls')->where('id', $payroll->id)->update(['month' => $month]);
+        }
 
         // Step 3: Make NOT NULL
         Schema::table('payrolls', function (Blueprint $table) {

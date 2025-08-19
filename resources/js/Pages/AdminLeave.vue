@@ -32,6 +32,13 @@
                   class="bg-green-500 text-white p-1 rounded mr-2">Approve</button>
                 <button @click="rejectLeave(leave.id)" class="bg-red-500 text-white p-1 rounded">Reject</button>
               </template>
+
+              <template v-else-if="leave.status === 'Approved' || leave.status === 'Rejected'">
+                <button @click="revertLeave(leave.id)"
+                  class="bg-silver-500 text-white p-1 rounded mr-2"><font-awesome-icon :icon="['fas', 'delete-left']" class="cursor-pointer text-yellow-500" />
+                </button>
+              </template>
+
               <template v-else>
                 <span v-if="leave.status === 'Approved'" class="text-green-600 font-semibold">Approved</span>
                 <span v-else-if="leave.status === 'Rejected'" class="text-red-600 font-semibold">Rejected</span>
@@ -72,6 +79,16 @@ const rejectLeave = async (id) => {
     onSuccess: () => {
       const leave = localLeaves.value.find(l => l.id === id);
       if (leave) leave.status = 'Rejected';
+    }
+  });
+};
+
+const revertLeave = async (id) => {
+  await router.post(route('admin.leaves.revert', id), {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      const leave = localLeaves.value.find(l => l.id === id);
+      if (leave) leave.status = 'Pending';
     }
   });
 };

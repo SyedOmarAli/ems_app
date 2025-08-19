@@ -70,4 +70,12 @@ class LeaveController extends Controller
 
         return back()->with('message', 'Leave rejected.');
     }
+    public function revert($leaveId)
+    {
+        $leave = Leaves::findOrFail($leaveId);
+        $leave->status = 'Pending';
+        $leave->save();
+
+        return back()->with('message', 'Leave reverted.');
+    }
 }

@@ -11,22 +11,28 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $attendance = Attendance::with('employee')
-            ->whereDate('date', today())
-            ->get();
+        try {
+            $query = Attendance::with('employee'); // eager load employee if available
 
-        $employees = Employee::all();
+            // filter by exact date (yyyy-mm-dd). If you want range filtering later, adapt here.
+            if ($request->filled('date')) {
+                // accept either yyyy-mm-dd or other formats; ensure consistent storage format
+                $query->whereDate('date', $request->input('date'));
+            }
 
-        return Inertia::render('Attendance', [
-            'attendances' => $attendance,
-            'employees' => $employees,
-            'date' => today()->toDateString(),
-            'routes' => [
-                'updateAttendance' => route('attendance.update_status'),
-            ],
-        ]);
+            // Order and paginate (10 per page — change as needed)
+            $attendances = $query->orderBy('date', 'desc')->paginate(5)->withQueryString();
+
+            return Inertia::render('AttendanceShow', [
+                'attendances' => $attendances,
+                'date' => $request->input('date', ''),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch attendance: ' . $e->getMessage());
+            return back()->withErrors('Unable to load attendance at the moment.');
+        }
     }
 
     public function updateStatus(Request $request)

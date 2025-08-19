@@ -21,8 +21,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('leaves', function (Blueprint $table) {
-            $table->dropColumn('date');
-        });
+        if (Schema::hasColumn('leaves', 'date')) {
+            Schema::table('leaves', function (Blueprint $table) {
+                $table->dropColumn('date');
+            });
+        }
     }
 };
