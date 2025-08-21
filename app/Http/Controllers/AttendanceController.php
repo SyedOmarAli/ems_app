@@ -14,18 +14,19 @@ class AttendanceController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Attendance::with('employee');
+            $query = Attendance::with('employee'); // eager load employee if available
 
+            // filter by exact date (yyyy-mm-dd). If you want range filtering later, adapt here.
             if ($request->filled('date')) {
+                // accept either yyyy-mm-dd or other formats; ensure consistent storage format
                 $query->whereDate('date', $request->input('date'));
             }
 
-            // paginate and then convert to array for predictable shape
+            // Order and paginate (10 per page — change as needed)
             $attendances = $query->orderBy('date', 'desc')->paginate(5)->withQueryString();
 
             return Inertia::render('AttendanceShow', [
-                // explicitly serialize to array (ensures 'links' exists when >1 page)
-                'attendances' => $attendances->toArray(),
+                'attendances' => $attendances,
                 'date' => $request->input('date', ''),
             ]);
         } catch (\Exception $e) {
@@ -33,7 +34,6 @@ class AttendanceController extends Controller
             return back()->withErrors('Unable to load attendance at the moment.');
         }
     }
-
 
     public function updateStatus(Request $request)
     {
