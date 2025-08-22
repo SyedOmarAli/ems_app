@@ -23,12 +23,12 @@
                 <nav>
                     <ul>
                         <li>
-                            <Link :href="route('employee.leaves')"
-                                class="block py-2 px-4 rounded hover:bg-blue-100 font-medium text-blue-700">Apply for
-                            leaves</Link>
                             <Link :href="route('employee.dashboard')"
                                 class="block py-2 px-4 rounded hover:bg-blue-100 font-medium text-blue-700">Dashboard
                             </Link>
+                            <Link :href="route('employee.leaves')"
+                                class="block py-2 px-4 rounded hover:bg-blue-100 font-medium text-blue-700">Apply for
+                            leaves</Link>
                         </li>
                     </ul>
                 </nav>

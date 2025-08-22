@@ -1,5 +1,3 @@
-
-
 <template>
   <EmployeeMainLayout :employee-name="stats.employee_name">
     <h1 class="text-2xl font-bold mb-6">Employee Dashboard</h1>
