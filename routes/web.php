@@ -22,8 +22,6 @@ Route::get('/', function () {
     ]);
 });
 
-
-
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
 
@@ -71,8 +69,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/leaves/{leave}/reject', [LeaveController::class, 'reject'])->name('admin.leaves.reject');
         Route::post('/admin/leaves/{leave}/revert', [LeaveController::class, 'revert'])->name('admin.leaves.revert');
     });
-
-
     /**
      * =====================
      *  EMPLOYEE ROUTES
@@ -90,8 +86,4 @@ Route::middleware('auth')->group(function () {
     });
 
 });
-
-
-
-
 require __DIR__ . '/auth.php';
