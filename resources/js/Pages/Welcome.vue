@@ -45,7 +45,7 @@ defineProps({
                 <div v-if="canLogin" class="flex items-center gap-2">
                     <template v-if="$page.props.auth?.user">
                         <Link
-                            :href="$page.props.auth.user.roles?.includes('admin') ? route('admin.dashboard') : route('employee.dashboard')"
+                            :href="$page.props.auth.is_admin ? route('admin.dashboard') : route('employee.dashboard')"
                             class="rounded-xl border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
                         Dashboard
                         </Link>
@@ -84,7 +84,7 @@ defineProps({
 
                     <div class="mt-6 flex flex-wrap gap-3">
                         <Link v-if="$page.props.auth?.user"
-                            :href="$page.props.auth.user.roles?.includes('admin') ? route('admin.employee.index') : route('employee.dashboard')"
+                            :href="$page.props.auth.is_admin ? route('admin.employee.index') : route('employee.dashboard')"
                             class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
                         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
