@@ -14,7 +14,7 @@ class AttendanceController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Attendance::with('employee'); // eager load employee if available
+            $query = Attendance::with('employee'); 
 
             // filter by exact date (yyyy-mm-dd). If you want range filtering later, adapt here.
             if ($request->filled('date')) {
@@ -23,7 +23,7 @@ class AttendanceController extends Controller
             }
 
             // Order and paginate (10 per page — change as needed)
-            $attendances = $query->orderBy('date', 'desc')->paginate(5)->withQueryString();
+            $attendances = $query->orderBy('date', 'desc')->paginate(10)->withQueryString();
 
             return Inertia::render('AttendanceShow', [
                 'attendances' => $attendances,

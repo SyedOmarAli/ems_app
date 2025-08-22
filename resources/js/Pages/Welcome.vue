@@ -8,6 +8,7 @@ defineProps({
     laravelVersion: { type: String, required: true },
     phpVersion: { type: String, required: true },
 })
+
 </script>
 
 <template>
@@ -44,11 +45,16 @@ defineProps({
 
                 <div v-if="canLogin" class="flex items-center gap-2">
                     <template v-if="$page.props.auth?.user">
-                        <Link
-                            :href="$page.props.auth.user.roles?.includes('admin') ? route('admin.dashboard') : route('employee.dashboard')"
+                        <Link v-if="$page.props.auth.is_admin ? route('admin.dashboard') : route('employee.dashboard')"
                             class="rounded-xl border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
                         Dashboard
                         </Link>
+
+                        <Link v-else :href="route('employee.dashboard')"
+                            class="rounded-xl border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
+                        Dashboard
+                        </Link>
+
                         <Link as="button" method="post" :href="route('logout')"
                             class="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-zinc-700 dark:hover:bg-zinc-800">
                         Logout
@@ -81,54 +87,10 @@ defineProps({
                         using
                         Laravel, Inertia, and Vue.
                     </p>
-
-                    <div class="mt-6 flex flex-wrap gap-3">
-                        <Link v-if="$page.props.auth?.user"
-                            :href="$page.props.auth.user.roles?.includes('admin') ? route('admin.employee.index') : route('employee.dashboard')"
-                            class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
-                        </svg>
-                        Manage Employees
-                        </Link>
-
-                        <Link v-if="$page.props.auth?.user" :href="route('attendance.show')"
-                            class="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-zinc-700 dark:hover:bg-zinc-800">
-                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M8 7V3m8 4V3M4 11h16M5 21h14a2 2 0 0 0 2-2v-8H3v8a2 2 0 0 0 2 2Z" />
-                        </svg>
-                        View Attendance
-                        </Link>
-
-                        <Link v-else :href="route('login')"
-                            class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
-                        Get Started
-                        </Link>
-                    </div>
-
-                    <!-- Quick metrics (placeholders) -->
-                    <div class="mt-8 grid grid-cols-3 gap-4 text-center">
-                        <div
-                            class="rounded-xl border bg-white/70 p-4 shadow-sm backdrop-blur dark:border-zinc-700 dark:bg-zinc-800/60">
-                            <p class="text-2xl font-bold">120</p>
-                            <p class="text-xs text-slate-500 dark:text-zinc-400">Employees</p>
-                        </div>
-                        <div
-                            class="rounded-xl border bg-white/70 p-4 shadow-sm backdrop-blur dark:border-zinc-700 dark:bg-zinc-800/60">
-                            <p class="text-2xl font-bold">8</p>
-                            <p class="text-xs text-slate-500 dark:text-zinc-400">Departments</p>
-                        </div>
-                        <div
-                            class="rounded-xl border bg-white/70 p-4 shadow-sm backdrop-blur dark:border-zinc-700 dark:bg-zinc-800/60">
-                            <p class="text-2xl font-bold">96%</p>
-                            <p class="text-xs text-slate-500 dark:text-zinc-400">On-time</p>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Illustration -->
-                
+
             </section>
 
             <!-- FEATURES -->

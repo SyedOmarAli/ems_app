@@ -90,8 +90,6 @@ class PayrollController extends Controller
 
         $totalSalary = round(($totalMinutes / 60) * $hourlyRate, 2);
 
-        // === Leaves & absents ===
-        // Count Approved leaves in the range (to exclude from absents)
         $totalLeaves = $employee->leaves()
             ->where('status', 'Approved')
             ->where(function ($q) use ($startDate, $endDate) {
@@ -132,7 +130,7 @@ class PayrollController extends Controller
             })
             ->count();
 
-        // Monetary deductions
+        
         $absentDeduction = $totalAbsents * $hourlyRate * 8;
         $unpaidLeavesAmount = $unpaidLeavesCount * $hourlyRate * 8;
         $rejectedLeavesAmount = $rejectedLeavesCount * $hourlyRate * 8;

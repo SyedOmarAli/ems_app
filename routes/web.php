@@ -1,5 +1,4 @@
 <?php
-\Log::info('Route hit: ' . request()->path());
 
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
@@ -24,9 +23,6 @@ Route::get('/', function () {
 });
 
 
-Route::get('/test-employee-dashboard', function () {
-    return 'Test route works!';
-});
 
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
