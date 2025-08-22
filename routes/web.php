@@ -53,7 +53,6 @@ Route::middleware('auth')->group(function () {
 
         // Attendance
         Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance');
-        Route::get('/attendance/sample-csv', [AttendanceController::class, 'downloadSample'])->name('attendance.sample.csv');
         Route::get('/attendance/upload-form', fn() => Inertia::render('AttendanceUpload'))->name('attendance.upload.form');
         Route::post('/attendance/update-status', [AttendanceController::class, 'updateStatus'])->name('attendance.update_status');
         Route::get('/attendance/show', [AttendanceController::class, 'show'])->name('attendance.show');

@@ -28,4 +28,3 @@ Track daily attendance, allow CSV uploads, manual updates, and listing with filt
 
 ### Notes
 - Consider using casts for times on the model for consistency
-- CSV sample download route is defined but controller action isn’t implemented

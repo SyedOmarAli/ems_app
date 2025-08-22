@@ -47,8 +47,6 @@ function submit() {
           <label class="block text-gray-700 font-semibold mb-2">Leave Type</label>
           <select v-model="form.leave_type" class="input" required>
             <option value="" disabled>Select type</option>
-            <option value="Sick">Sick</option>
-            <option value="Casual">Casual</option>
             <option value="Paid">Paid</option>
             <option value="Unpaid">Unpaid</option>
           </select>

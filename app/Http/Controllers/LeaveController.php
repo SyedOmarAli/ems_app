@@ -33,7 +33,7 @@ class LeaveController extends Controller
             'from_date' => 'required|date',
             'to_date' => 'required|date|after_or_equal:from_date',
             'leave_type' => 'required|string',
-            'reason' => 'nullable|string',
+            'reason' => 'nullable|string|max:500',
         ]);
 
         $employee = \App\Models\Employee::where('user_id', auth()->id())->first();

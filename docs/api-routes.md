@@ -35,7 +35,6 @@ All routes are defined in `routes/web.php` and `routes/auth.php` and return Iner
   - `POST /attendance/update-status` (`attendance.update_status`) → Bulk/single update
   - `GET /attendance/show` (`attendance.show`) → Full list
   - `POST /attendance/upload` (`attendance.upload`) → CSV upload and process
-  - `GET /attendance/sample-csv` (`attendance.sample.csv`) → Sample download (route exists; controller method not present)
 - Payroll
   - `GET /payroll` (`payroll`) → List
   - `POST /payroll/generate` (`payroll.generate`) → Generate for date range; returns JSON
