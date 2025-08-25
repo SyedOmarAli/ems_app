@@ -28,6 +28,12 @@ function deleteEmployee(id) {
   }
 }
 
+function sendPasswordLink(id) {
+  router.post(route('admin.employee.send_password_link', { employee: id }), {}, {
+    preserveScroll: true,
+  })
+}
+
 function goToLink(link) {
   if (!link || !link.url) return
 
@@ -80,6 +86,11 @@ function goToLink(link) {
               <button @click="router.visit(route('admin.employee.show', employee.id))"
                 class="bg-silver-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600">
                 <font-awesome-icon :icon="['fas', 'eye']" class="cursor-pointer text-yellow-500" />
+              </button>
+
+              <button @click="sendPasswordLink(employee.id)"
+                class="bg-blue-600 text-white px-3 py-1 rounded mr-2 hover:bg-blue-700">
+                Send Password Link
               </button>
 
               <button @click="deleteEmployee(employee.id)"

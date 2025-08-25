@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('admin.employee.edit');
         Route::put('/admin/employee/{employee}', [EmployeeController::class, 'update'])->name('admin.employee.update');
         Route::delete('/admin/employee/{employee}', [EmployeeController::class, 'destroy'])->name('admin.employee.destroy');
+        Route::post('/admin/employee/{employee}/send-password-link', [EmployeeController::class, 'sendPasswordSetupLink'])->name('admin.employee.send_password_link');
 
         // Employee Details
         Route::get('admin/employee/{employee}', [EmployeeController::class, 'show'])->name('admin.employee.show');
