@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class EmployeeController extends Controller
 {
@@ -63,7 +65,8 @@ class EmployeeController extends Controller
             $user = User::create([
                 'name' => $validatedData['name'],
                 'email' => $validatedData['email'],
-                'password' => Hash::make('pass123'),
+                // Set a strong random temporary password and send a setup link
+                'password' => Hash::make(Str::random(32)),
             ]);
 
             $user->assignRole('employee');
@@ -71,10 +74,15 @@ class EmployeeController extends Controller
             $validatedData['user_id'] = $user->id;
             Employee::create($validatedData);
 
-
+            // Send password setup link to the employee's email
+            try {
+                Password::sendResetLink(['email' => $user->email]);
+            } catch (\Throwable $e) {
+                Log::error('Failed to send password setup link: ' . $e->getMessage());
+            }
 
             return redirect()->route('admin.employee.index')
-                ->with('message', 'Employee registered successfully.');
+                ->with('message', 'Employee registered successfully. Password setup link sent.');
         } catch (QueryException $e) {
             Log::error('Failed to create employee: ' . $e->getMessage());
             return back()->withErrors('Error creating employee. Please try again.');
@@ -145,6 +153,30 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to delete employee ID ' . $employee->id . ': ' . $e->getMessage());
             return back()->withErrors('Error deleting employee. Please try again.');
+        }
+    }
+
+    /**
+     * Resend password setup link to an employee's email.
+     */
+    public function sendPasswordSetupLink(Employee $employee)
+    {
+        try {
+            $email = $employee->user ? $employee->user->email : $employee->email;
+            if (!$email) {
+                return back()->withErrors('No email found for this employee.');
+            }
+
+            $status = Password::sendResetLink(['email' => $email]);
+
+            if ($status === Password::RESET_LINK_SENT) {
+                return back()->with('message', 'Password setup link sent.');
+            }
+
+            return back()->withErrors(__($status));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send password setup link for employee ID ' . $employee->id . ': ' . $e->getMessage());
+            return back()->withErrors('Failed to send password setup link.');
         }
     }
 
