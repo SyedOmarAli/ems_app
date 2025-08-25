@@ -25,10 +25,10 @@ class EmployeeController extends Controller
 
             if ($request->has('search') && $request->input('search') !== '') {
                 $search = $request->input('search');
-                $query->where(function($q) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
-                      ->orWhere('email', 'like', '%' . $search . '%')
-                      ->orWhere('department', 'like', '%' . $search . '%');
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('department', 'like', '%' . $search . '%');
                 });
             }
 
@@ -103,7 +103,7 @@ class EmployeeController extends Controller
         try {
             $employee->update($validatedData);
 
-            
+
             if ($employee->user) {
                 $employee->user->update([
                     'name' => $validatedData['name'],
@@ -136,7 +136,7 @@ class EmployeeController extends Controller
     public function destroy(Employee $employee)
     {
         try {
-            if($employee->user){
+            if ($employee->user) {
                 $employee->user->delete();
             }
             $employee->delete();
@@ -158,13 +158,50 @@ class EmployeeController extends Controller
         $userId = optional($employee)->user_id;
 
         return $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:employees,email,' . $employeeId . '|unique:users,email,' . $userId,
-            'phone' => 'required|string|max:20',
-            'salary' => 'required|numeric|max:100',
-            'hire_date' => 'required|date',
-            'code' => $employee ? 'sometimes' : 'required|numeric|max:5000',
-            'department' => 'required|string|max:100',
+            'name' => [
+                'required',
+                'string',
+                'regex:/^[a-zA-Z\s\-]+$/',
+                'min:3',
+                'max:50'
+            ],
+            'email' => [
+                'required',
+                'email:rfc,dns', 
+                'max:100',
+                'unique:employees,email,' . $employeeId,
+                'unique:users,email,' . $userId,
+            ],
+            'phone' => [
+                'required',
+                'regex:/^\+?[0-9]{10,15}$/', 
+                'unique:employees,phone,' . $employeeId, 
+            ],
+            'salary' => [
+                'required',
+                'numeric',
+                'min:1000',   
+                'max:1000000' 
+            ],
+            'hire_date' => [
+                'required',
+                'date',
+                'before_or_equal:today' 
+            ],
+            'code' => [
+                $employee ? 'sometimes' : 'required',
+                'integer',
+                'min:1',
+                'max:5000',
+                'unique:employees,code,' . $employeeId, 
+            ],
+            'department' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[a-zA-Z\s\-]+$/', 
+            ],
         ]);
+
     }
 }
