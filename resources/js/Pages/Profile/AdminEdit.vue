@@ -4,7 +4,7 @@ import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
 import { Head } from '@inertiajs/vue3';
-import EmployeeMainLayout from '@/Layouts/EmployeeMainLayout.vue';
+import MainLayout from '@/Layouts/MainLayout.vue';
 
 defineProps({
     mustVerifyEmail: {
@@ -18,7 +18,7 @@ defineProps({
 
 
 <template>
-    <EmployeeMainLayout>
+    <MainLayout>
 
         <Head title="Profile" />
 
@@ -46,5 +46,5 @@ defineProps({
                 </div>
             </div>
         </AuthenticatedLayout>
-    </EmployeeMainLayout>
+    </MainLayout>
 </template>
